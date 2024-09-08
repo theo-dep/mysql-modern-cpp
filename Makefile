@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++11 -O2 -Wall -Wextra -Werror -I. -DNO_STD_OPTIONAL
+CXXFLAGS = -std=c++23 -O2 -Wall -Wextra -Werror -I.
 LDFLAGS = -lmysqlclient -lz -lzstd -lssl -lcrypto -lresolv -lm
 
 SRCS = $(wildcard *.cpp)

@@ -15,10 +15,6 @@ Contributors:
 	Dominik Thalhammer		https://github.com/Thalhammer
 	Samuel Borgman			https://github.com/sambrg
 
-
-Macro Flags:
-	NO_STD_OPTIONAL	: using std::experimental::optional by polyfill instead of std::optional in C++17
-
 */
 
 
@@ -36,20 +32,14 @@ Macro Flags:
 
 #include <string>
 #include <ctime>
+#include <optional>
+#include <memory>
 #include <mutex>
 #include <vector>
-#include <memory>
-#include <stdarg.h>
+#include <cstdarg>
 
 #include "polyfill/function_traits.h"
 #include "polyfill/datetime.h"
-
-
-#ifndef NO_STD_OPTIONAL
-#include <optional>
-#else
-#include "polyfill/optional.hpp"
-#endif
 
 
 
@@ -59,14 +49,6 @@ namespace daotk {
 
 		template <typename Function>
 		using function_traits = typename sqlite::utility::function_traits<Function>;
-
-#ifndef NO_STD_OPTIONAL
-		template <typename T>
-		using optional = typename std::optional<T>;
-#else
-		template <typename T>
-		using optional = typename std::experimental::optional<T>;
-#endif
 
 
 		inline std::string format_string_vargs(const char* fmt_str, va_list args) {
@@ -154,7 +136,14 @@ namespace daotk {
 
 		// iterator class that can be used for iterating returned result rows
 		template <typename... Values>
-		class result_iterator : std::iterator<std::random_access_iterator_tag, std::tuple<Values...>, int> {
+		class result_iterator {
+		public:
+			using iterator_category = std::random_access_iterator_tag;
+			using value_type = std::tuple<Values...>;
+			using difference_type = int;
+		    using pointer = value_type*;
+		    using reference = value_type&;
+
 		protected:
 			result* res;
 			std::shared_ptr<std::tuple<Values...>> data;
@@ -678,13 +667,13 @@ namespace daotk {
 			}
 
 			template <typename Value>
-			void get_value(int i, optional<Value>& value) {
+			void get_value(int i, std::optional<Value>& value) {
 				Value v;
 				if (get_value(i, v)) value = v;
 			}
 
 			template <typename Value>
-			void get_value(optional<Value>& value) {
+			void get_value(std::optional<Value>& value) {
 				get_value(0, value);
 			}
 
@@ -1001,7 +990,7 @@ namespace daotk {
 
 			template<enum_field_types mysql_type, typename T>
 			struct my_optional_number_bind : my_bind_base {
-				optional<T>* data;
+				std::optional<T>* data;
 				T pdata;
 
 				virtual void pre_execute() override {
@@ -1047,18 +1036,18 @@ namespace daotk {
 
 			template<> struct my_bind<bool> : my_number_bind<MYSQL_TYPE_TINY, bool> {};
 
-			template<> struct my_bind<optional<uint8_t>> : my_optional_number_bind<MYSQL_TYPE_TINY, uint8_t> {};
-			template<> struct my_bind<optional<int8_t>> : my_optional_number_bind<MYSQL_TYPE_TINY, int8_t> {};
-			template<> struct my_bind<optional<uint16_t>> : my_optional_number_bind<MYSQL_TYPE_SHORT, uint16_t> {};
-			template<> struct my_bind<optional<int16_t>> : my_optional_number_bind<MYSQL_TYPE_SHORT, int16_t> {};
-			template<> struct my_bind<optional<uint32_t>> : my_optional_number_bind<MYSQL_TYPE_LONG, uint32_t> {};
-			template<> struct my_bind<optional<int32_t>> : my_optional_number_bind<MYSQL_TYPE_LONG, int32_t> {};
-			template<> struct my_bind<optional<uint64_t>> : my_optional_number_bind<MYSQL_TYPE_LONGLONG, uint64_t> {};
-			template<> struct my_bind<optional<int64_t>> : my_optional_number_bind<MYSQL_TYPE_LONGLONG, int64_t> {};
-			template<> struct my_bind<optional<float>> : my_optional_number_bind<MYSQL_TYPE_FLOAT, float> {};
-			template<> struct my_bind<optional<double>> : my_optional_number_bind<MYSQL_TYPE_DOUBLE, double> {};
+			template<> struct my_bind<std::optional<uint8_t>> : my_optional_number_bind<MYSQL_TYPE_TINY, uint8_t> {};
+			template<> struct my_bind<std::optional<int8_t>> : my_optional_number_bind<MYSQL_TYPE_TINY, int8_t> {};
+			template<> struct my_bind<std::optional<uint16_t>> : my_optional_number_bind<MYSQL_TYPE_SHORT, uint16_t> {};
+			template<> struct my_bind<std::optional<int16_t>> : my_optional_number_bind<MYSQL_TYPE_SHORT, int16_t> {};
+			template<> struct my_bind<std::optional<uint32_t>> : my_optional_number_bind<MYSQL_TYPE_LONG, uint32_t> {};
+			template<> struct my_bind<std::optional<int32_t>> : my_optional_number_bind<MYSQL_TYPE_LONG, int32_t> {};
+			template<> struct my_bind<std::optional<uint64_t>> : my_optional_number_bind<MYSQL_TYPE_LONGLONG, uint64_t> {};
+			template<> struct my_bind<std::optional<int64_t>> : my_optional_number_bind<MYSQL_TYPE_LONGLONG, int64_t> {};
+			template<> struct my_bind<std::optional<float>> : my_optional_number_bind<MYSQL_TYPE_FLOAT, float> {};
+			template<> struct my_bind<std::optional<double>> : my_optional_number_bind<MYSQL_TYPE_DOUBLE, double> {};
 
-			template<> struct my_bind<optional<bool>> : my_optional_number_bind<MYSQL_TYPE_TINY, bool> {};
+			template<> struct my_bind<std::optional<bool>> : my_optional_number_bind<MYSQL_TYPE_TINY, bool> {};
 
 			template<>
 			struct my_bind<std::string> : my_bind_base {
@@ -1104,8 +1093,8 @@ namespace daotk {
 			};
 
 			template<>
-			struct my_bind<optional<std::string>> : my_bind_base {
-				optional<std::string>* data;
+			struct my_bind<std::optional<std::string>> : my_bind_base {
+				std::optional<std::string>* data;
 
 				virtual void pre_execute() override {
 					memset(bind, 0x00, sizeof(MYSQL_BIND));
@@ -1220,7 +1209,7 @@ namespace daotk {
 				void set_variable(std::size_t idx, T& arg) {
 					if (idx >= _wrappers.size())
 						throw std::out_of_range("Invalid binding index");
-					std::unique_ptr<stmt_bind_detail::my_bind<T>> wrap(new stmt_bind_detail::my_bind<T>());
+					auto wrap = std::make_unique<stmt_bind_detail::my_bind<T>>();
 					wrap->data = &arg;
 					wrap->bind = &_binds_mysql[idx];
 					_wrappers[idx] = std::move(wrap);

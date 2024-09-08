@@ -4,7 +4,7 @@
 #include <sstream>
 #include <iomanip>
 #include <time.h>
-#include <string.h>
+#include <cstring>
 
 
 namespace daotk {
@@ -78,7 +78,7 @@ namespace daotk {
 					str >> sec;
 				}
 			}
-			
+
 			std::string to_sql(bool with_sec_frac = true) const {
 				std::ostringstream str;
 
