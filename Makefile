@@ -28,9 +28,14 @@ $(MYSQL_TARGET): database.sql
 		mysql:latest \
 	> $@
 
+debug: $(TARGET)d
+
+$(TARGET)d: test.cpp
+	$(CXX) -g -std=c++23 -I. -o $@ $^ $(LDFLAGS)
+
 clean:
 	docker stop $(MYSQL_TARGET)
 	docker rm $(MYSQL_TARGET)
-	rm -f $(OBJS) $(TARGET) $(MYSQL_TARGET)
+	rm -f $(OBJS) $(TARGET) $(TARGET)d $(MYSQL_TARGET)
 
 .PHONY: all clean

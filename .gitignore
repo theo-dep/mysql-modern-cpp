@@ -24,7 +24,7 @@ bld/
 
 # Makefile build results
 *.o
-test
+test*
 database-mysqlppp
 
 # Visual Studio 2015 cache/options directory

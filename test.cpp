@@ -188,9 +188,12 @@ int main()
 
 	} catch (const mysql_exception& exp) {
 		cout << "Query #" << sample_count << " failed with error: " << exp.error_number() << " - " << exp.what() << endl;
-	}
-	catch (const mysqlpp_exception& exp) {
+	} catch (const mysqlpp_exception& exp) {
 		cout << "Query #" << sample_count << " failed with error: " << exp.what() << endl;
+	} catch (const std::exception& exp) {
+		cout << "Fail at #" << sample_count << " failed with error: " << exp.what() << endl;
+	} catch (...) {
+		cout << "Unknown fail at #" << sample_count << endl;
 	}
 
 
