@@ -8,7 +8,7 @@ using namespace daotk::mysql;
 int main()
 {
 	// connection
-	connection my{ "localhost", "tester", "tester", "test_test_test" };
+	connection my{ "127.0.0.1", "root", "tester", "test_test_test" };
 	if (!my) {
 		cout << "Connection failed" << endl;
 		return -1;
