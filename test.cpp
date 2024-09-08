@@ -1,9 +1,6 @@
 #include <iostream>
 
-// uncomment the following line if needed:
-#define NO_STD_OPTIONAL
 #include "mysql+++/mysql+++.h"
-
 
 using namespace std;
 using namespace daotk::mysql;
@@ -78,7 +75,7 @@ int main()
 		else cout << "No max weight value" << endl;
 
 
-	
+
 
 		cout << "** QUERY EXAMPLE " << ++sample_count << endl;
 
@@ -160,9 +157,9 @@ int main()
 		// using `set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_ON)` after connection
 		my.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_ON);
 		auto datasets = my.mquery("select count(*) from person; select id, name, weight from person");
-		
+
 		cout << datasets[0].get_value<int>(0) << endl;
-		
+
 		datasets[1].each([](int id, string name, optional<double> weight) {
 			cout << "ID: " << id << ", name: " << name;
 			if (weight) cout << ", weight: " << *weight;
@@ -172,7 +169,7 @@ int main()
 
 
 
-	
+
 		cout << "** QUERY EXAMPLE " << ++sample_count << endl;
 
 		// We also have support for prepared statements and binding:
@@ -189,10 +186,10 @@ int main()
 		}
 
 
-	} catch (mysql_exception exp) {
+	} catch (const mysql_exception& exp) {
 		cout << "Query #" << sample_count << " failed with error: " << exp.error_number() << " - " << exp.what() << endl;
 	}
-	catch (mysqlpp_exception exp) {
+	catch (const mysqlpp_exception& exp) {
 		cout << "Query #" << sample_count << " failed with error: " << exp.what() << endl;
 	}
 
